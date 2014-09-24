@@ -22,7 +22,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.MeasureSpec;
@@ -59,55 +61,56 @@ public abstract class FadingActionBarHelperBase {
     private boolean mFirstGlobalLayoutPerformed;
     private FrameLayout mMarginView;
     private View mListViewBackgroundView;
+    private View dropShadowView;
 
     public final <T extends FadingActionBarHelperBase> T actionBarBackground(int drawableResId) {
         mActionBarBackgroundResId = drawableResId;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T actionBarBackground(Drawable drawable) {
         mActionBarBackgroundDrawable = drawable;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T headerLayout(int layoutResId) {
         mHeaderLayoutResId = layoutResId;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T headerView(View view) {
         mHeaderView = view;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T headerOverlayLayout(int layoutResId) {
         mHeaderOverlayLayoutResId = layoutResId;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T headerOverlayView(View view) {
         mHeaderOverlayView = view;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T contentLayout(int layoutResId) {
         mContentLayoutResId = layoutResId;
-        return (T)this;
+        return (T) this;
     }
 
-    public final <T extends FadingActionBarHelperBase> T  contentView(View view) {
+    public final <T extends FadingActionBarHelperBase> T contentView(View view) {
         mContentView = view;
-        return (T)this;
+        return (T) this;
     }
 
     public final <T extends FadingActionBarHelperBase> T lightActionBar(boolean value) {
         mLightActionBar = value;
-        return (T)this;
+        return (T) this;
     }
 
-    public final <T extends FadingActionBarHelperBase> T  parallax(boolean value) {
+    public final <T extends FadingActionBarHelperBase> T parallax(boolean value) {
         mUseParallax = value;
-        return (T)this;
+        return (T) this;
     }
 
     public final View createView(Context context) {
@@ -133,7 +136,7 @@ public abstract class FadingActionBarHelperBase {
         View root;
         if (listView != null) {
             root = createListView(listView);
-        } else if (mContentView instanceof ObservableWebViewWithHeader){
+        } else if (mContentView instanceof ObservableWebViewWithHeader) {
             root = createWebView();
         } else {
             root = createScrollView();
@@ -146,7 +149,7 @@ public abstract class FadingActionBarHelperBase {
             mMarginView.addView(mHeaderOverlayView);
         }
 
-        // Use measured height here as an estimate of the header height, later on after the layout is complete 
+        // Use measured height here as an estimate of the header height, later on after the layout is complete
         // we'll use the actual height
         int widthMeasureSpec = MeasureSpec.makeMeasureSpec(LayoutParams.MATCH_PARENT, MeasureSpec.EXACTLY);
         int heightMeasureSpec = MeasureSpec.makeMeasureSpec(LayoutParams.WRAP_CONTENT, MeasureSpec.EXACTLY);
@@ -178,13 +181,15 @@ public abstract class FadingActionBarHelperBase {
     }
 
     protected abstract int getActionBarHeight();
+
     protected abstract boolean isActionBarNull();
+
     protected abstract void setActionBarBackgroundDrawable(Drawable drawable);
 
     protected <T> T getActionBarWithReflection(Activity activity, String methodName) {
         try {
             Method method = activity.getClass().getMethod(methodName);
-            return (T)method.invoke(activity);
+            return (T) method.invoke(activity);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
@@ -194,11 +199,11 @@ public abstract class FadingActionBarHelperBase {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (ClassCastException e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }
-    
+
     private Drawable.Callback mDrawableCallback = new Drawable.Callback() {
         @Override
         public void invalidateDrawable(Drawable who) {
@@ -228,8 +233,7 @@ public abstract class FadingActionBarHelperBase {
 
         mMarginView = new FrameLayout(webView.getContext());
         mMarginView.setBackgroundColor(Color.TRANSPARENT);
-        mMarginView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        mMarginView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         webView.addView(mMarginView);
 
         return webViewContainer;
@@ -242,14 +246,14 @@ public abstract class FadingActionBarHelperBase {
         scrollView.setOnScrollChangedCallback(mOnScrollChangedListener);
 
         ViewGroup contentContainer = (ViewGroup) scrollViewContainer.findViewById(R.id.fab__container);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-        		LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         mContentView.setLayoutParams(layoutParams);
         contentContainer.addView(mContentView);
         mHeaderContainer = (FrameLayout) scrollViewContainer.findViewById(R.id.fab__header_container);
         initializeGradient(mHeaderContainer);
         mHeaderContainer.addView(mHeaderView, 0);
         mMarginView = (FrameLayout) contentContainer.findViewById(R.id.fab__content_top_margin);
+        dropShadowView = scrollViewContainer.findViewById(R.id.fab__drop_shadow);
 
         return scrollViewContainer;
     }
@@ -272,7 +276,7 @@ public abstract class FadingActionBarHelperBase {
         mMarginView.setLayoutParams(new AbsListView.LayoutParams(LayoutParams.MATCH_PARENT, 0));
         listView.addHeaderView(mMarginView, null, false);
 
-        // Make the background as high as the screen so that it fills regardless of the amount of scroll. 
+        // Make the background as high as the screen so that it fills regardless of the amount of scroll.
         mListViewBackgroundView = contentContainer.findViewById(R.id.fab__listview_background);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mListViewBackgroundView.getLayoutParams();
         params.height = Utils.getDisplayHeight(listView.getContext());
@@ -313,10 +317,25 @@ public abstract class FadingActionBarHelperBase {
 
         int headerHeight = currentHeaderHeight - getActionBarHeight();
         float ratio = (float) Math.min(Math.max(scrollPosition, 0), headerHeight) / headerHeight;
+        updateDropShadowAlpha(ratio, headerHeight);
         int newAlpha = (int) (ratio * 255);
         mActionBarBackgroundDrawable.setAlpha(newAlpha);
 
         addParallaxEffect(scrollPosition);
+    }
+
+    private void updateDropShadowAlpha(float ratio, int headerHeight) {
+        int bla = (int) (Math.min(ratio, 0.05f) * 500);
+        int[] gdColors = new int[] { Color.argb(0, 0, 0, 0), Color.argb(bla, 0, 0, 0) };
+        Drawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, gdColors);
+        dropShadowView.setBackgroundDrawable(gd);
+
+        // float blub = (Math.max(ratio - 0.84f, 0.0f) * 6.25f);
+        // LayoutParams lp = snapToTopView.getLayoutParams();
+        // lp.height = (int) (headerHeight * blub);
+        //
+        // Log.d("stocard", "ratio: " + ratio + " , hh: " + headerHeight + " -> " + lp.height);
+        // snapToTopView.setLayoutParams(lp);
     }
 
     private void addParallaxEffect(int scrollPosition) {
