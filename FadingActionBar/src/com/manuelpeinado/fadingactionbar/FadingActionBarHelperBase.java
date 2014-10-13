@@ -15,17 +15,14 @@
  */
 package com.manuelpeinado.fadingactionbar;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
@@ -40,6 +37,9 @@ import android.widget.ListView;
 import com.manuelpeinado.fadingactionbar.view.ObservableScrollView;
 import com.manuelpeinado.fadingactionbar.view.ObservableWebViewWithHeader;
 import com.manuelpeinado.fadingactionbar.view.OnScrollChangedCallback;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
 public abstract class FadingActionBarHelperBase {
