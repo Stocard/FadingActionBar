@@ -10,7 +10,8 @@ android {
     compileSdkVersion 21
 
     defaultConfig {
-        targetSdkVersion 10
+        minSdkVersion 10
+        targetSdkVersion 21
     }
 
     sourceSets {
